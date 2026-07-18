@@ -73,3 +73,9 @@ The combined pipeline for the published paper remains frozen at [thermo-elastic-
 - `scripts/validate_fd_courant.py` requires the Courant-one FD field to match
   d'Alembert for the full 1.8 ns paper preset. The checked-in run record is
   `docs/fd_courant_acceptance.json`.
+
+## Physics roadmap
+
+For physics *beyond* the current Fourier + constant-G Cr/GaAs baseline —
+including the APS 7ID / Pohang multi-thickness, four-substrate (GaAs, Si,
+InSb, Ge) re-analysis campaign — see [`docs/PHYSICS_ROADMAP.md`](docs/PHYSICS_ROADMAP.md).
