@@ -24,7 +24,9 @@ def test_leapfrog_reference_model_still_runs():
 
 
 def test_dalembert_model_runs_and_matches_near_field():
-    leapfrog = run_simulation(SimulationConfig(t_max=1e-12), verbose=False)
+    leapfrog = run_simulation(
+        SimulationConfig(model="ttm_cr_gaas", t_max=1e-12), verbose=False
+    )
     dalembert = run_simulation(
         SimulationConfig(model="ttm_dalembert_cr_gaas", t_max=1e-12), verbose=False
     )

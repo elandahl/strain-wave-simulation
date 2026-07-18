@@ -5,6 +5,11 @@ Compute displacement and strain profiles from laser-excited film/substrate syste
 ## Current models
 
 - **`ttm_dalembert_cr_gaas` (default)** — TTM near field + exact d'Alembert far-field propagation (dispersion-free; recovers the discrete pulse train of Sci. Rep. Fig. 3). Physically realistic choice for new work.
+- **`ttm_fd_courant_cr_gaas`** — same TTM/near field, with a boundary-driven
+  GaAs finite-difference field at acoustic Courant number exactly one. It
+  matches d'Alembert in the homogeneous source-free limit and is the validated
+  FD foundation for future distributed carrier stress, reflections, and
+  inhomogeneous-substrate physics.
 - **`ttm_cr_gaas`** — Two-temperature model + leapfrog elastic wave propagation (notebook/paper-faithful). Kept as the **historical reference**: its far field carries a known numerical-dispersion wake at this solver's tiny acoustic Courant number. Used by `scripts/validate_split.py` for bit-for-bit equivalence with the frozen thermo-elastic-gaas repo.
 
 See `docs/ACOUSTIC_MODELS.md` for the numerical-dispersion analysis and when to use which.
@@ -23,6 +28,9 @@ python scripts/run.py --preset paper_fig3_gaas --no-show
 
 # Historical notebook-faithful leapfrog solver:
 python scripts/run.py --preset paper_fig3_gaas --model ttm_cr_gaas --no-show
+
+# Validated Courant-one FD substrate field:
+python scripts/run.py --preset paper_fig3_gaas --model ttm_fd_courant_cr_gaas --no-show
 ```
 
 Outputs:
@@ -47,6 +55,7 @@ The `.npz` file includes `z`, `displacement`, `strain`, `substrate_strain`, `dz`
 
 | Future work | Where to add |
 |-------------|--------------|
+| Carrier generation / transport / recombination and deformation-potential stress | extend the field/source interface in `models/courant_fd.py`; register a new material model |
 | Phonon MFP strain models | `src/strain_wave/models/` + register with `register_model()` |
 | Si, Ge, InSb substrates | `src/strain_wave/materials/` + new model or generalized solver |
 | Multilayers / variable thickness | extend `SimulationConfig` and add new model class |
@@ -57,4 +66,10 @@ The `.npz` file includes `z`, `displacement`, `strain`, `substrate_strain`, `dz`
 The combined pipeline for the published paper remains frozen at [thermo-elastic-gaas](https://github.com/elandahl/thermo-elastic-gaas) (tag `paper-v1.0`). This repo reproduces the **strain step** only.
 
 - `--preset paper_fig3_gaas` mirrors the Sci. Rep. Fig. 3 parameter set (`src/strain_wave/presets.py`).
-- `scripts/validation_matrix.py` runs both strain models through both XRD instrument models and produces comparison figures (`docs/ACOUSTIC_MODELS.md`, `docs/images/matrix_strain_far.png`).
+- `scripts/validation_matrix.py` compares the historical leapfrog and default
+  d'Alembert strain models through both XRD instrument models and produces
+  comparison figures (`docs/ACOUSTIC_MODELS.md`,
+  `docs/images/matrix_strain_far.png`).
+- `scripts/validate_fd_courant.py` requires the Courant-one FD field to match
+  d'Alembert for the full 1.8 ns paper preset. The checked-in run record is
+  `docs/fd_courant_acceptance.json`.

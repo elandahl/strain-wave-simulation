@@ -1,0 +1,16 @@
+{
+  "case": "paper_fig3_gaas",
+  "reference_model": "ttm_dalembert_cr_gaas",
+  "candidate_model": "ttm_fd_courant_cr_gaas",
+  "source_free_region_starts_nm": 104.16534181240064,
+  "max_abs_strain_difference": 2.2863655413374318e-14,
+  "rms_strain_difference": 1.2552974444528117e-15,
+  "normalized_rms_difference": 5.1110116945903735e-12,
+  "correlation": 0.9999999999999993,
+  "peak_position_difference_nm": 0.0,
+  "tolerances": {
+    "max_abs_strain_difference": 1e-10,
+    "normalized_rms_difference": 1e-07
+  },
+  "passed": true
+}

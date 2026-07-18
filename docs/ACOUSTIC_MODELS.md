@@ -1,12 +1,13 @@
 # Acoustic models
 
 This repo supports switchable strain models (see `strain_wave.models.base`).
-Two are currently registered; both use the *same* two-temperature (TTM)
+Three are currently registered; all use the *same* two-temperature (TTM)
 thermal solve and differ only in how the elastic wave reaches the far field.
 
 | model | far field | use when |
 |---|---|---|
 | `ttm_dalembert_cr_gaas` (**default**) | exact d'Alembert translation beyond a monitor plane | physically meaningful far-field strain (e.g. Sci. Rep. Fig. 3 pulse train); all new work |
+| `ttm_fd_courant_cr_gaas` | boundary-driven GaAs FD field at C=1 beyond the same monitor plane | validated numerical foundation for future physics that breaks d'Alembert assumptions |
 | `ttm_cr_gaas` | leapfrog FD everywhere | **historical reference**: reproducing the notebook / thermo-elastic-gaas (tag `paper-v1.0`) bit-for-bit |
 
 Select with `--model` on the CLI, or `SimulationConfig(model=...)`. The
@@ -18,6 +19,7 @@ matches the d'Alembert morphology.
 
 ```bash
 python scripts/run.py --preset paper_fig3_gaas --no-show           # default (d'Alembert)
+python scripts/run.py --preset paper_fig3_gaas --model ttm_fd_courant_cr_gaas --no-show
 python scripts/run.py --preset paper_fig3_gaas --model ttm_cr_gaas --no-show  # historical
 ```
 
@@ -71,6 +73,62 @@ Remaining approximations: the sharpest edges of high-order film echoes still
 carry some dispersion from their round trips inside the film itself
 (n-th echo travels 2*n*80 nm of FD grid before transmission), but echo
 amplitudes decay like `0.23^n`, so only the first few matter.
+
+## Courant-matched FD foundation
+
+`ttm_fd_courant_cr_gaas` was added in anticipation of physics for which
+d'Alembert translation is no longer valid: distributed carrier generation,
+transport, recombination and deformation-potential stress; buried interfaces
+and reflections; spatially varying elastic properties; damping; or nonlinear
+constitutive laws.
+
+It is intentionally a **new model**, not a modification of the historical
+`ttm_cr_gaas`. The current implementation uses the same near-field/interface
+calculation and acoustic monitor record as the d'Alembert model, then advances
+a boundary-driven finite-difference strain field through homogeneous GaAs.
+Its separate acoustic clock uses
+
+    dt_acoustic = dz / v_GaAs
+    C = v_GaAs * dt_acoustic / dz = 1
+
+At C=1, the second-order leapfrog dispersion relation is exact on the grid.
+The acoustic clock starts by less than one step before t=0, allowing it to
+land exactly on `t_max` without reducing C. The far boundary uses the
+corresponding exact outgoing update.
+
+This is a **validated foundation, not yet a carrier or multilayer model**.
+Adding those effects requires extending the FD field with distributed source
+terms and/or variable material coefficients. The important starting point is
+that the propagator has no baseline numerical-dispersion error in the
+source-free homogeneous limit.
+
+### Required acceptance limit
+
+Two tests prevent regression:
+
+1. `tests/test_courant_fd.py::test_courant_one_fd_equals_dalembert_translation`
+   sends a synthetic bipolar boundary pulse through the FD grid and compares
+   every point to analytic retarded-time translation.
+2. `tests/test_courant_fd.py::test_cr_gaas_fd_matches_dalembert_in_source_free_substrate`
+   compares the integrated Cr/GaAs models.
+
+The full paper-preset check is:
+
+```bash
+python scripts/validate_fd_courant.py
+```
+
+For the 2026-07-18 1.8 ns run:
+
+- acoustic Courant number: exactly 1;
+- acoustic steps: 3,186 (versus 1,009,973 thermal steps);
+- maximum absolute FD–d'Alembert strain difference: `2.29e-14`;
+- normalized RMS difference: `5.11e-12`;
+- correlation: `0.9999999999999993`;
+- peak-position difference: `0.0 nm`;
+- acceptance: **PASSED**.
+
+The machine-readable record is `docs/fd_courant_acceptance.json`.
 
 ## Validation matrix result (paper_fig3_gaas preset)
 
