@@ -1,0 +1,75 @@
+{
+  "model": "ttm_dalembert_cr_gaas",
+  "passed": true,
+  "n_passed": 6,
+  "n_total": 6,
+  "checks": [
+    {
+      "name": "echo_spacing",
+      "passed": true,
+      "detail": "measured 109.8 nm vs analytic 2*L_film*v_GaAs/v_Cr = 114.4 nm (4.1% off)",
+      "values": {
+        "measured_nm": 109.7907949790795,
+        "expected_nm": 114.44309927360776,
+        "rel_error": 0.04065168039014436
+      }
+    },
+    {
+      "name": "echo_reflectivity",
+      "passed": true,
+      "detail": "first echo/leading amplitude ratio 0.260 vs impedance |r| = 0.233",
+      "values": {
+        "measured_ratio": 0.2600790018283733,
+        "impedance_r": 0.2325631775431784
+      }
+    },
+    {
+      "name": "thickness_scaling",
+      "passed": true,
+      "detail": "spacing(120 nm)/spacing(80 nm) = 1.536 vs thickness ratio 1.500 (2.4% off)",
+      "values": {
+        "spacing_120_nm": 168.6815415821501,
+        "spacing_80_nm": 109.7907949790795,
+        "measured_scale": 1.5363905654776628,
+        "expected_scale": 1.5
+      }
+    },
+    {
+      "name": "thermalization_timescale",
+      "passed": true,
+      "detail": "lumped electron-phonon 1/e time 0.500 ps (peak \u0394T 3722 K at 0.143 ps)",
+      "values": {
+        "peak_time_ps": 0.1428,
+        "peak_delta_T": 3721.5965393405168,
+        "tau_1e_ps": 0.4997
+      }
+    },
+    {
+      "name": "thermalization_scales_with_G",
+      "passed": true,
+      "detail": "tau(G/2)=1.014 > tau(G)=0.500 > tau(2G)=0.245 ps",
+      "values": {
+        "tau_half_G": 1.0140999999999998,
+        "tau_G": 0.4997,
+        "tau_double_G": 0.2449
+      }
+    },
+    {
+      "name": "dispersion_grows_with_distance",
+      "passed": true,
+      "detail": "relative far-field RMS(leapfrog - d'Alembert) increases with propagation distance: 378 nm -> 0.792, 756 nm -> 1.187, 1512 nm -> 1.850",
+      "values": {
+        "fronts_nm": [
+          378.12,
+          756.24,
+          1512.48
+        ],
+        "rel_rms": [
+          0.7924273692950626,
+          1.1874949192721143,
+          1.8498931640735947
+        ]
+      }
+    }
+  ]
+}

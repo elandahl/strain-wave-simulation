@@ -6,6 +6,7 @@
 | `fig3_strain_split_dalembert.png` | **Direct comparison to the published Fig. 3 strain panel.** Corrected d'Alembert strain (black) on the paper's exact split z-axis (0–800 nm and 7900–8700 nm), with the dispersive leapfrog strain (gray) as reference. | `scripts/plot_fig3_strain_split.py` | Current (2026-07-18 run). Preferred figure for a by-eye paper overlay. |
 | `courant_convergence.png` | Dense acoustic step-size (Courant number) sweep of the leapfrog scheme on the real Cr/GaAs boundary history vs d'Alembert. Shows the small-C error plateau, contraction just below C=1, machine-precision agreement exactly at C=1, and time-to-divergence for values just above and farther above the CFL limit. | `scripts/demo_courant_convergence.py` | Current (2026-07-18 run). |
 | `matrix_strain_far.png` | Leapfrog (`ttm_cr_gaas`) vs d'Alembert (`ttm_dalembert_cr_gaas`) strain, near field (identical by construction) and far field (~8.5 μm wavefront), Sci. Rep. Fig. 3 preset. The blue far-field wake is numerical dispersion; the red discrete ~114 nm pulse train is the corrected physics. | `scripts/validation_matrix.py` | Current (2026-07-18 run). |
+| `physics_acceptance_pulse_train.png` | Acoustic pulse train in the d'Alembert far field (80 nm Cr/GaAs) with analytic echo-spacing gridlines (`2·L_film·v_GaAs/v_Cr` ≈ 114 nm). Diagnostic for the physics acceptance suite. | `scripts/validate_physics.py` | Current (2026-07-18 run). See `../VALIDATION.md`. |
 
 Interpretation and analysis: `../ACOUSTIC_MODELS.md`. The companion
 rocking-curve matrix figure lives in

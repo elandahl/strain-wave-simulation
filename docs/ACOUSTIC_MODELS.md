@@ -130,6 +130,12 @@ For the 2026-07-18 1.8 ns run:
 
 The machine-readable record is `docs/fd_courant_acceptance.json`.
 
+Beyond this numerical-equivalence limit, the **physics acceptance suite**
+(`scripts/validate_physics.py`, `tests/test_physics_acceptance.py`) checks that
+the models reproduce the expected acoustic echo structure (spacing, impedance
+decay, thickness scaling) and film thermalization timescale, and quantifies the
+dispersion-vs-distance growth described above. See [`VALIDATION.md`](VALIDATION.md).
+
 ### Why C = 1 specifically (the step-size sweep)
 
 `scripts/demo_courant_convergence.py` takes the *same* recorded Cr/GaAs

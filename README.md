@@ -73,6 +73,11 @@ The combined pipeline for the published paper remains frozen at [thermo-elastic-
 - `scripts/validate_fd_courant.py` requires the Courant-one FD field to match
   d'Alembert for the full 1.8 ns paper preset. The checked-in run record is
   `docs/fd_courant_acceptance.json`.
+- `scripts/validate_physics.py` runs the **physics acceptance suite** (acoustic
+  echo spacing/decay, thickness scaling, lumped thermalization, and the
+  numerical-dispersion convergence diagnosis). Report: `docs/physics_acceptance.json`;
+  full write-up: [`docs/VALIDATION.md`](docs/VALIDATION.md). Both validation
+  layers are also enforced by `pytest`.
 
 ## Physics roadmap
 
