@@ -130,6 +130,30 @@ For the 2026-07-18 1.8 ns run:
 
 The machine-readable record is `docs/fd_courant_acceptance.json`.
 
+### Why C = 1 specifically (the step-size sweep)
+
+`scripts/demo_courant_convergence.py` takes the *same* recorded Cr/GaAs
+acoustic boundary history and propagates it through the same leapfrog scheme at
+a sweep of acoustic Courant numbers, comparing each to d'Alembert:
+
+![acoustic step size vs far-field accuracy](images/courant_convergence.png)
+
+The result is not a gentle convergence — it is nearly all-or-nothing:
+
+- For every `C < 1` the far field shows essentially the same dispersive wake
+  (normalized RMS error ≈ 1.16). Numerical dispersion of the pulse's sharp
+  (short-wavelength) content **saturates** at the `C → 0` "sinc limit"
+  `v_num/v ≈ sinc(k·dz/2)`, which is independent of `C`. So the original
+  solver's tiny step is not the problem, and *shrinking* the step does not
+  help.
+- At exactly `C = 1` the leapfrog dispersion relation is exact for all
+  wavelengths on the grid, and the error collapses to ~1e-12 (roundoff /
+  interpolation only).
+
+This is the concrete justification for the magic-step design: at a fixed grid
+you must either hit `C = 1` or refine `dz` drastically (cost ∝ dz⁻², since the
+thermal step scales as dz²). `ttm_fd_courant_cr_gaas` takes the former route.
+
 ## Validation matrix result (paper_fig3_gaas preset)
 
 `scripts/validation_matrix.py` runs both models and pushes both strain
