@@ -16,9 +16,10 @@ def main() -> None:
     )
     parser.add_argument(
         "--model",
-        default="ttm_cr_gaas",
+        default="ttm_dalembert_cr_gaas",
         choices=list_models(),
-        help="Strain simulation model",
+        help="Strain simulation model (default: d'Alembert far field; "
+        "'ttm_cr_gaas' is the historical leapfrog reference)",
     )
     parser.add_argument(
         "--preset",

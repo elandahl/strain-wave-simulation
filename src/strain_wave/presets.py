@@ -17,7 +17,7 @@ _K_GAAS_BULK = 55.0
 _V_CR_BASE = 6477.0
 
 
-def paper_fig3_gaas(model: str = "ttm_cr_gaas") -> SimulationConfig:
+def paper_fig3_gaas(model: str = "ttm_dalembert_cr_gaas") -> SimulationConfig:
     """Parameters aimed at reproducing Sci. Rep. Fig. 3 (Cr/GaAs, Δt = 1.8 ns).
 
     Source: Jo et al., Sci. Rep. 12, 16606 (2022), DOI 10.1038/s41598-022-20715-5.
@@ -55,12 +55,12 @@ def paper_fig3_gaas(model: str = "ttm_cr_gaas") -> SimulationConfig:
 
 
 PRESETS = {
-    "default": lambda model="ttm_cr_gaas": SimulationConfig(model=model),
+    "default": lambda model="ttm_dalembert_cr_gaas": SimulationConfig(model=model),
     "paper_fig3_gaas": paper_fig3_gaas,
 }
 
 
-def get_preset(name: str, model: str = "ttm_cr_gaas") -> SimulationConfig:
+def get_preset(name: str, model: str = "ttm_dalembert_cr_gaas") -> SimulationConfig:
     if name not in PRESETS:
         available = ", ".join(sorted(PRESETS))
         raise KeyError(f"Unknown preset {name!r}. Available: {available}")

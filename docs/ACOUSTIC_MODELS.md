@@ -6,13 +6,19 @@ thermal solve and differ only in how the elastic wave reaches the far field.
 
 | model | far field | use when |
 |---|---|---|
-| `ttm_cr_gaas` | leapfrog FD everywhere | reproducing the notebook / thermo-elastic-gaas (tag `paper-v1.0`) bit-for-bit |
-| `ttm_dalembert_cr_gaas` | exact d'Alembert translation beyond a monitor plane | physically meaningful far-field strain (e.g. Sci. Rep. Fig. 3 pulse train) |
+| `ttm_dalembert_cr_gaas` (**default**) | exact d'Alembert translation beyond a monitor plane | physically meaningful far-field strain (e.g. Sci. Rep. Fig. 3 pulse train); all new work |
+| `ttm_cr_gaas` | leapfrog FD everywhere | **historical reference**: reproducing the notebook / thermo-elastic-gaas (tag `paper-v1.0`) bit-for-bit |
 
-Select with `--model` on the CLI, or `SimulationConfig(model=...)`.
+Select with `--model` on the CLI, or `SimulationConfig(model=...)`. The
+d'Alembert model is the default because, for the region beyond the interface
+(homogeneous, undamped, right-going wave), the d'Alembert translation is the
+*exact* solution of the continuum equations — any difference from the leapfrog
+far field is quantified numerical error, and the published Fig. 3 pulse train
+matches the d'Alembert morphology.
 
 ```bash
-python scripts/run.py --preset paper_fig3_gaas --model ttm_dalembert_cr_gaas --no-show
+python scripts/run.py --preset paper_fig3_gaas --no-show           # default (d'Alembert)
+python scripts/run.py --preset paper_fig3_gaas --model ttm_cr_gaas --no-show  # historical
 ```
 
 ## Why a second model exists: numerical dispersion at tiny Courant number

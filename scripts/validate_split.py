@@ -36,10 +36,15 @@ def main() -> int:
     strain_fig = RESULTS / "strain_figure.png"
     xrd_fig = RESULTS / "xrd_figure.png"
 
+    # Pin the historical leapfrog model: this script checks bit-for-bit
+    # equivalence with the frozen thermo-elastic-gaas reference, which uses
+    # that solver. The repo-wide default is the d'Alembert model.
     run(
         [
             python_in(STRAIN_REPO),
             "scripts/run.py",
+            "--model",
+            "ttm_cr_gaas",
             "--no-show",
             "--output",
             str(strain_file),

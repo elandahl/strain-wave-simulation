@@ -5,14 +5,22 @@ import numpy as np
 from strain_wave import SimulationConfig, get_preset, run_simulation
 
 
-def test_short_simulation_runs():
+def test_default_model_is_dalembert():
     config = SimulationConfig(t_max=1e-12)
     result = run_simulation(config, verbose=False)
 
-    assert result.model == "ttm_cr_gaas"
+    assert result.model == "ttm_dalembert_cr_gaas"
     assert result.displacement.shape == result.z.shape
     assert result.strain.shape == result.z.shape
     assert result.n_iter > 0
+
+
+def test_leapfrog_reference_model_still_runs():
+    config = SimulationConfig(model="ttm_cr_gaas", t_max=1e-12)
+    result = run_simulation(config, verbose=False)
+
+    assert result.model == "ttm_cr_gaas"
+    assert result.strain.shape == result.z.shape
 
 
 def test_dalembert_model_runs_and_matches_near_field():
@@ -33,7 +41,7 @@ def test_dalembert_model_runs_and_matches_near_field():
 
 
 def test_paper_preset():
-    config = get_preset("paper_fig3_gaas", model="ttm_dalembert_cr_gaas")
+    config = get_preset("paper_fig3_gaas")
     assert config.model == "ttm_dalembert_cr_gaas"
     assert config.t_max == 1.8e-9
     assert config.L_film == 80e-9

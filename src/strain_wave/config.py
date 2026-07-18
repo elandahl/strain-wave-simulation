@@ -7,7 +7,10 @@ from dataclasses import dataclass
 class SimulationConfig:
     """Parameters for the Cr/GaAs two-temperature strain simulation."""
 
-    model: str = "ttm_cr_gaas"
+    # Default model: d'Alembert far field (physically realistic; dispersion-
+    # free). "ttm_cr_gaas" is the historical notebook-faithful leapfrog
+    # reference. See docs/ACOUSTIC_MODELS.md.
+    model: str = "ttm_dalembert_cr_gaas"
     t_max: float = 300e-12
     L_film: float = 180e-9
     L_sub: float = 1800e-9
