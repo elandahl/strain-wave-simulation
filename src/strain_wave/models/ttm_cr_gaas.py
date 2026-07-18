@@ -19,7 +19,7 @@ class TtmCrGaAsModel:
     ) -> StrainSimulationResult:
         z = np.linspace(0, config.L_tot, config.n_total)
 
-        displacement, t_e, t_p, t_s, n_iter, dt = solver(
+        displacement, t_e, t_p, t_s, n_iter, dt, _, _ = solver(
             config.G,
             config.R_ps,
             config.k_e_factor,

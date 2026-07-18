@@ -19,8 +19,13 @@ def source(R, knu, J, tp, z_film, t):
 
 @njit
 def solver(
-    G, R_ps, k_e_factor, k_s_factor, J, d, d_v, t_Cr, t_sub, dz, t_max
+    G, R_ps, k_e_factor, k_s_factor, J, d, d_v, t_Cr, t_sub, dz, t_max,
+    monitor_idx=-1,
 ):
+    # monitor_idx: optional grid index (in the substrate) at which the strain
+    # and substrate temperature time-histories are recorded every step. Used
+    # by the d'Alembert reconstruction model; recording does not affect the
+    # solution. Pass -1 to disable (empty arrays are returned).
     R_Cr = 0.6
     knu_Cr = (4 * np.pi / (800e-9) * 3.135)
     tp_laser = 50e-15
@@ -81,6 +86,10 @@ def solver(
 
     dt = dz**2 / 2 / 0.002
     n_iter = int(t_max / dt)
+
+    n_rec = n_iter if monitor_idx >= 0 else 0
+    strain_rec = np.zeros(n_rec)
+    Ts_rec = np.zeros(n_rec)
 
     for i in range(0, n_iter):
         C_e = gamma_Cr * T_e
@@ -365,8 +374,12 @@ def solver(
         usm1 = us.copy()
         us = usp1.copy()
 
+        if monitor_idx >= 0:
+            strain_rec[i] = (us[monitor_idx + 1] - us[monitor_idx - 1]) / (2 * dz)
+            Ts_rec[i] = T_s[monitor_idx]
+
     displacement = np.concatenate((uf[: n_bin_film - 1], us[n_bin_film - 1 :]))
-    return displacement, T_e, T_p, T_s, n_iter, dt
+    return displacement, T_e, T_p, T_s, n_iter, dt, strain_rec, Ts_rec
 
 
 def simulation_diagnostics(dz: float, t_max: float, n_iter: int, dt: float) -> float:

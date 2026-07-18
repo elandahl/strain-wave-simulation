@@ -3,11 +3,11 @@
 import argparse
 from pathlib import Path
 
-from strain_wave.config import SimulationConfig
 from strain_wave.io import save_strain_profile
 from strain_wave.models.base import list_models
 from strain_wave.pipeline import run_simulation
 from strain_wave.plotting import plot_strain_results
+from strain_wave.presets import get_preset, list_presets
 
 
 def main() -> None:
@@ -21,10 +21,16 @@ def main() -> None:
         help="Strain simulation model",
     )
     parser.add_argument(
+        "--preset",
+        default="default",
+        choices=list_presets(),
+        help="Named parameter set (e.g. paper_fig3_gaas)",
+    )
+    parser.add_argument(
         "--t-max",
         type=float,
-        default=300e-12,
-        help="Simulation end time in seconds",
+        default=None,
+        help="Override simulation end time in seconds",
     )
     parser.add_argument(
         "--output",
@@ -41,7 +47,9 @@ def main() -> None:
     parser.add_argument("--no-show", action="store_true")
     args = parser.parse_args()
 
-    config = SimulationConfig(model=args.model, t_max=args.t_max)
+    config = get_preset(args.preset, model=args.model)
+    if args.t_max is not None:
+        config.t_max = args.t_max
     result = run_simulation(config=config)
     save_strain_profile(result.to_profile(), args.output)
     plot_strain_results(result, save_path=args.figure, show=not args.no_show)

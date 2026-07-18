@@ -2,9 +2,12 @@
 
 Compute displacement and strain profiles from laser-excited film/substrate systems. This repository is split from the published [thermo-elastic-gaas](https://github.com/elandahl/thermo-elastic-gaas) package and is intended for extension to new strain models and material stacks.
 
-## Current model
+## Current models
 
-- **`ttm_cr_gaas`** — Two-temperature model + elastic wave propagation for Cr on GaAs (paper reproduction)
+- **`ttm_cr_gaas`** — Two-temperature model + leapfrog elastic wave propagation for Cr on GaAs (notebook/paper-faithful)
+- **`ttm_dalembert_cr_gaas`** — Same TTM near field + exact d'Alembert far-field propagation (dispersion-free; recovers the discrete pulse train of Sci. Rep. Fig. 3)
+
+See `docs/ACOUSTIC_MODELS.md` for the numerical-dispersion analysis and when to use which.
 
 ## Quick start
 
@@ -14,6 +17,9 @@ cd strain-wave-simulation
 python3 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 python scripts/run.py --no-show
+
+# Paper Fig. 3 parameters with the dispersion-free far field:
+python scripts/run.py --preset paper_fig3_gaas --model ttm_dalembert_cr_gaas --no-show
 ```
 
 Outputs:
@@ -43,6 +49,9 @@ The `.npz` file includes `z`, `displacement`, `strain`, `substrate_strain`, `dz`
 | Multilayers / variable thickness | extend `SimulationConfig` and add new model class |
 | Different films | new material modules + model implementation |
 
-## Paper reproduction
+## Paper reproduction and validation
 
-The combined pipeline for the published paper remains frozen at [thermo-elastic-gaas](https://github.com/elandahl/thermo-elastic-gaas). This repo reproduces the **strain step** only.
+The combined pipeline for the published paper remains frozen at [thermo-elastic-gaas](https://github.com/elandahl/thermo-elastic-gaas) (tag `paper-v1.0`). This repo reproduces the **strain step** only.
+
+- `--preset paper_fig3_gaas` mirrors the Sci. Rep. Fig. 3 parameter set (`src/strain_wave/presets.py`).
+- `scripts/validation_matrix.py` runs both strain models through both XRD instrument models and produces comparison figures (`docs/ACOUSTIC_MODELS.md`, `docs/images/matrix_strain_far.png`).
