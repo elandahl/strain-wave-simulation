@@ -48,3 +48,23 @@ def test_paper_preset():
     assert config.t_max == 1.8e-9
     assert config.L_film == 80e-9
     assert config.J == 80.0
+
+
+def test_paper_fig2_si_preset_and_short_run():
+    config = get_preset("paper_fig2_si")
+    assert config.model == "ttm_dalembert_cr_si"
+    assert config.substrate == "Si"
+    assert config.t_max == 0.34e-9
+    assert abs(config.R_ps - 1.0 / 1.1e8) < 1e-15
+
+    short = SimulationConfig(
+        model="ttm_dalembert_cr_si",
+        substrate="Si",
+        t_max=1e-12,
+        L_film=80e-9,
+        L_sub=500e-9,
+        dz=2.67e-9,
+    )
+    result = run_simulation(short, verbose=False)
+    assert result.substrate_material == "Si"
+    assert result.model == "ttm_dalembert_cr_si"

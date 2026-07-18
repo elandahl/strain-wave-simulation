@@ -1,4 +1,8 @@
-"""Two-temperature model and elastic wave solver for Cr/GaAs."""
+"""Two-temperature model and elastic wave solver for Cr on a cubic substrate.
+
+Substrate acoustics/thermals default to GaAs for archival bit-compatibility;
+pass ``v_sub``, ``rho_sub``, ``beta_sub``, ``cp_sub``, ``k_s_bulk`` for Si etc.
+"""
 
 import numpy as np
 from numba import njit
@@ -21,6 +25,11 @@ def source(R, knu, J, tp, z_film, t):
 def solver(
     G, R_ps, k_e_factor, k_s_factor, J, d, d_v, t_Cr, t_sub, dz, t_max,
     monitor_idx=-1,
+    v_sub=4726.5,
+    rho_sub=5320.0,
+    beta_sub=5.73e-6,
+    cp_sub=350.0,
+    k_s_bulk=55.0,
 ):
     # monitor_idx: optional grid index (in the substrate) at which the strain
     # and substrate temperature time-histories are recorded every step. Used
@@ -48,13 +57,13 @@ def solver(
     C_p = C_Cr
     alpha_p = k_p / C_p
 
-    v_GaAs = V_GAAS
-    rho_GaAs = 5.32 * 1e3
-    beta_GaAs = 5.73e-6
+    v_GaAs = v_sub
+    rho_GaAs = rho_sub
+    beta_GaAs = beta_sub
     B_GaAs = rho_GaAs * (v_GaAs**2)
 
-    k_s = 55 * k_s_factor
-    C_s = 350 * rho_GaAs
+    k_s = k_s_bulk * k_s_factor
+    C_s = cp_sub * rho_GaAs
     alpha_s = k_s / C_s
 
     L_film = t_Cr
@@ -382,6 +391,8 @@ def solver(
     return displacement, T_e, T_p, T_s, n_iter, dt, strain_rec, Ts_rec
 
 
-def simulation_diagnostics(dz: float, t_max: float, n_iter: int, dt: float) -> float:
+def simulation_diagnostics(
+    dz: float, t_max: float, n_iter: int, dt: float, v_sub: float = V_GAAS
+) -> float:
     """Return how far the elastic wave reaches in nm."""
-    return round(n_iter * dt * V_GAAS * 1e9, 3)
+    return round(n_iter * dt * v_sub * 1e9, 3)

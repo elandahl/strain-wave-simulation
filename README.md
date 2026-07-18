@@ -5,6 +5,9 @@ Compute displacement and strain profiles from laser-excited film/substrate syste
 ## Current models
 
 - **`ttm_dalembert_cr_gaas` (default)** — TTM near field + exact d'Alembert far-field propagation (dispersion-free; recovers the discrete pulse train of Sci. Rep. Fig. 3). Physically realistic choice for new work.
+- **`ttm_dalembert_cr_si`** / **`ttm_dalembert_cr_substrate`** — same method for Cr/Si (Fig. 2) or any substrate in `strain_wave.materials`.
+- **`ttm_fd_courant_cr_gaas`** — Courant-matched FD far field (acceptance-tested vs d'Alembert).
+- **`ttm_cr_gaas`** — historical notebook leapfrog (dispersive; archival only).
 - **`ttm_fd_courant_cr_gaas`** — same TTM/near field, with a boundary-driven
   GaAs finite-difference field at acoustic Courant number exactly one. It
   matches d'Alembert in the homogeneous source-free limit and is the validated
@@ -25,6 +28,9 @@ python scripts/run.py --no-show
 
 # Paper Fig. 3 parameters (d'Alembert far field is the default):
 python scripts/run.py --preset paper_fig3_gaas --no-show
+
+# Sci. Rep. Fig. 2 (Cr/Si, Δt = 0.34 ns)
+python scripts/run.py --preset paper_fig2_si --no-show
 
 # Historical notebook-faithful leapfrog solver:
 python scripts/run.py --preset paper_fig3_gaas --model ttm_cr_gaas --no-show
