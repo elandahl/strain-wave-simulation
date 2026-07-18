@@ -32,7 +32,13 @@ XRD_REPO = REPO.parent / "xrd-strain-simulation"
 OUT = REPO / "results" / "matrix"
 
 MODELS = ["ttm_cr_gaas", "ttm_dalembert_cr_gaas"]
-INSTRUMENTS = ["notebook", "aps_7idc"]
+INSTRUMENTS = ["empirical", "aps_7idc"]
+
+# Human-readable panel titles (kernel widths quoted for clarity).
+INSTRUMENT_TITLES = {
+    "empirical": "empirical effective resolution\n(multi-Gaussian, dominant sigma ~22 arcsec)",
+    "aps_7idc": "APS 7ID-C instrument\n(Gaussian, 1.8 arcsec FWHM = paper's stated value)",
+}
 
 # +/- ~200 arcsec around the GaAs (004) Bragg angle at 10 keV, sampled at
 # ~0.7 arcsec so the 1.8 arcsec instrument Gaussian is resolved.
@@ -173,7 +179,7 @@ def make_rocking_figure(outputs: dict[tuple[str, str], Path]) -> dict:
     }
     colors = {"ttm_cr_gaas": "tab:blue", "ttm_dalembert_cr_gaas": "tab:red"}
 
-    fig, axes = plt.subplots(1, 2, figsize=(12, 4.5), sharey=True)
+    fig, axes = plt.subplots(1, 2, figsize=(13, 5.0), sharey=True)
     diag = {}
     for ax, instrument in zip(axes, INSTRUMENTS):
         curves = {}
@@ -183,21 +189,24 @@ def make_rocking_figure(outputs: dict[tuple[str, str], Path]) -> dict:
             inten = d["intensity"]
             th_bragg = th[inten.argmax()]
             x = (th - th_bragg) * ARCSEC_PER_DEG
-            ax.plot(x, inten, color=colors[m], lw=1.0, alpha=0.8, label=labels[m])
+            ax.plot(x, inten, color=colors[m], lw=1.2, alpha=0.8, label=labels[m])
             curves[m] = inten
         ax.set_xlabel(r"$\theta - \theta_{Bragg}$ (arcsec)")
         ax.set_xlim(-200, 200)
-        ax.set_title(f"instrument: {instrument}")
+        ax.set_title(INSTRUMENT_TITLES.get(instrument, instrument), fontsize=10)
         ax.grid(alpha=0.3)
+        ax.legend(title="strain model (both shown in each panel)", fontsize=8)
         diag[instrument] = {
             "max_abs_delta_log10I_between_models": float(
                 np.max(np.abs(curves[MODELS[0]] - curves[MODELS[1]]))
             )
         }
-    axes[0].set_ylabel(r"$\log_{10}$ intensity")
-    axes[0].legend()
+    axes[0].set_ylabel(r"$\log_{10}$ intensity (arb.; note offset differs per panel)")
     fig.suptitle(
-        "GaAs (004) rocking curves, Fig. 3 preset: strain model x instrument"
+        "GaAs (004) rocking curves, Sci. Rep. Fig. 3 preset\n"
+        "PANELS = instrument (angular blur);  COLORS = strain model.  "
+        "Left panel's vertical offset is a normalization artifact.",
+        fontsize=11,
     )
     fig.tight_layout()
     path = OUT / "matrix_rocking.png"

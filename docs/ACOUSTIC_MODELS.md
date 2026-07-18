@@ -71,7 +71,8 @@ amplitudes decay like `0.23^n`, so only the first few matter.
 `scripts/validation_matrix.py` runs both models and pushes both strain
 profiles through xrd-strain-simulation with both instrument models.
 Figures: `docs/images/matrix_strain_far.png` (here) and
-`docs/images/matrix_rocking.png` (in xrd-strain-simulation).
+`docs/images/matrix_rocking.png` (in xrd-strain-simulation, which also has a
+guide to reading it — panels are instruments, colors are strain models).
 
 ![strain comparison](images/matrix_strain_far.png)
 
@@ -87,3 +88,8 @@ Key numbers from the 2026-07-18 run (`results/matrix/matrix_summary.json`):
   and confined to the weak shoulder ~+50 to +150 arcsec; the Bragg peak and
   near-peak structure are unchanged. This confirms the earlier diagnosis that
   the dispersion artifact barely affects the diffraction observable.
+
+Instrument axis (the two rocking-curve panels): the `empirical` effective
+resolution (dominant σ ≈ 22 arcsec) smooths far more than the `aps_7idc`
+model at the paper's stated 1.8 arcsec, and matches the smoothness of the
+published Fig. 3 curve better. See the xrd repo's `docs/INSTRUMENTS.md`.
