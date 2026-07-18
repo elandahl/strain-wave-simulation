@@ -40,15 +40,47 @@ from strain_wave.models.ttm_dalembert_cr_gaas import (  # noqa: E402
 
 REPO = Path(__file__).resolve().parents[1]
 
-# Courant numbers to sweep. The native full-grid solver runs near the smallest
-# value; C = 1 is the magic step used by ttm_fd_courant_cr_gaas.
-COURANTS = [0.003, 0.01, 0.03, 0.1, 0.3, 1.0]
+# Courant numbers below and immediately approaching the stability boundary.
+# The native full-grid solver runs near the smallest value; C = 1 is the
+# magic step used by ttm_fd_courant_cr_gaas.
+STABLE_COURANTS = [
+    0.003,
+    0.01,
+    0.03,
+    0.1,
+    0.3,
+    0.5,
+    0.7,
+    0.85,
+    0.9,
+    0.95,
+    0.98,
+    0.99,
+    0.995,
+    0.999,
+    1.0,
+]
+
+# Values just above and farther above the CFL boundary. These are formally
+# unstable, so they are assessed by time-to-divergence rather than presented
+# as physically meaningful final strain profiles.
+ABOVE_CFL_COURANTS = [1.00001, 1.0001, 1.001, 1.005, 1.01, 1.05, 1.1, 1.3]
+
+# Stop an unstable run once its field is this many times larger than the
+# actual boundary pulse. This avoids floating-point overflow and gives a
+# useful, comparable time-to-divergence metric.
+DIVERGENCE_FACTOR = 100.0
 FAR_WINDOW_NM = (7900.0, 8700.0)
 
 
 @njit
-def _propagate_leapfrog(boundary_samples: np.ndarray, n_space: int, c2: float) -> np.ndarray:
-    """Boundary-driven 1D leapfrog at Courant^2 = c2; returns final field."""
+def _propagate_leapfrog(
+    boundary_samples: np.ndarray,
+    n_space: int,
+    c2: float,
+    stop_amplitude: float,
+) -> tuple[np.ndarray, int, bool]:
+    """Boundary-driven leapfrog, optionally stopping an unstable run."""
     previous = np.zeros(n_space)
     current = np.zeros(n_space)
     current[0] = boundary_samples[1] if len(boundary_samples) > 1 else boundary_samples[0]
@@ -65,9 +97,11 @@ def _propagate_leapfrog(boundary_samples: np.ndarray, n_space: int, c2: float) -
         if n_space > 1:
             # First-order outgoing (Mur) boundary at Courant number sqrt(c2).
             following[-1] = current[-1] + np.sqrt(c2) * (current[-2] - current[-1])
+        if np.max(np.abs(following)) >= stop_amplitude:
+            return following, step + 1, True
         previous = current
         current = following
-    return current
+    return current, len(boundary_samples) - 1, False
 
 
 def _propagate_at_courant(
@@ -78,7 +112,8 @@ def _propagate_at_courant(
     speed: float,
     t_final: float,
     courant: float,
-) -> np.ndarray:
+    stop_amplitude: float,
+) -> tuple[np.ndarray, int, int, float, bool]:
     dt_ac = courant * dz / speed
     n_steps = int(np.ceil(t_final / dt_ac))
     t_start = t_final - n_steps * dt_ac
@@ -86,7 +121,11 @@ def _propagate_at_courant(
     samples = np.interp(
         acoustic_times, boundary_times, boundary_vals, left=0.0, right=boundary_vals[-1]
     )
-    return _propagate_leapfrog(samples, n_space, courant * courant)
+    field, completed_steps, diverged = _propagate_leapfrog(
+        samples, n_space, courant * courant, stop_amplitude
+    )
+    elapsed = completed_steps * dt_ac
+    return field, completed_steps, n_steps, elapsed, diverged
 
 
 def main() -> None:
@@ -130,10 +169,19 @@ def main() -> None:
     errors = {}
     mask = (z_far >= FAR_WINDOW_NM[0]) & (z_far <= FAR_WINDOW_NM[1])
     ref_rms = float(np.sqrt(np.mean((dalembert[mask] - thermal_far[mask]) ** 2)))
-    for c in COURANTS:
-        field = _propagate_at_courant(
-            boundary_times, boundary_vals, n_space, dz_grid, V_GAAS, t_end, c
+    for c in STABLE_COURANTS:
+        field, _, _, _, diverged = _propagate_at_courant(
+            boundary_times,
+            boundary_vals,
+            n_space,
+            dz_grid,
+            V_GAAS,
+            t_end,
+            c,
+            stop_amplitude=1e300,
         )
+        if diverged:
+            raise RuntimeError(f"Unexpected divergence for stable C={c}")
         total = field + thermal_far
         fields[c] = total
         acoustic_only = field
@@ -144,8 +192,35 @@ def main() -> None:
         )
         print(f"  C = {c:6.3f} : normalized far-field RMS error = {errors[c]:.3e}")
 
+    print("Testing values above the CFL boundary...")
+    stop_amplitude = DIVERGENCE_FACTOR * float(np.max(np.abs(boundary_vals)))
+    above_cfl = {}
+    for c in ABOVE_CFL_COURANTS:
+        _, completed, total_steps, elapsed, diverged = _propagate_at_courant(
+            boundary_times,
+            boundary_vals,
+            n_space,
+            dz_grid,
+            V_GAAS,
+            t_end,
+            c,
+            stop_amplitude=stop_amplitude,
+        )
+        above_cfl[c] = {
+            "completed": completed,
+            "total": total_steps,
+            "elapsed_ps": elapsed * 1e12,
+            "diverged": diverged,
+        }
+        status = (
+            f"reached {DIVERGENCE_FACTOR:g}x amplitude"
+            if diverged
+            else "did not reach threshold within 1.8 ns"
+        )
+        print(f"  C = {c:8.5f} : {status} at {elapsed * 1e12:.2f} ps")
+
     # ---- Figure -----------------------------------------------------------
-    fig, (axA, axB) = plt.subplots(1, 2, figsize=(13, 5))
+    fig, (axA, axB, axC) = plt.subplots(1, 3, figsize=(18, 5))
 
     # d'Alembert reference drawn thick underneath everything.
     axA.plot(
@@ -157,9 +232,9 @@ def main() -> None:
         label="d'Alembert (exact)",
         zorder=1,
     )
-    sub_unity = [c for c in COURANTS if c < 1.0]
-    cmap = plt.cm.winter(np.linspace(0.0, 1.0, len(sub_unity)))
-    for color, c in zip(cmap, sub_unity):
+    profile_cs = [0.003, 0.3, 0.7, 0.9, 0.99, 0.999]
+    cmap = plt.cm.winter(np.linspace(0.0, 1.0, len(profile_cs)))
+    for color, c in zip(cmap, profile_cs):
         axA.plot(
             z_far[mask],
             fields[c][mask] * 1e3,
@@ -183,14 +258,14 @@ def main() -> None:
     axA.set_ylabel(r"strain $\times 10^{3}$")
     axA.set_title(
         "Same recorded boundary wave, different acoustic step size\n"
-        "every C < 1 gives the same dispersive wake; only C = 1 lands on exact"
+        "wake contracts only very near C=1; C=1 lands on exact"
     )
     axA.legend(fontsize=8, loc="upper left")
     axA.grid(alpha=0.3)
 
-    cs = np.array(COURANTS)
-    errs = np.array([errors[c] for c in COURANTS])
-    axB.loglog(cs, errs, "o-", color="tab:red", lw=1.4, zorder=3)
+    cs = np.array(STABLE_COURANTS)
+    errs = np.array([errors[c] for c in STABLE_COURANTS])
+    axB.semilogy(cs, errs, "o-", color="tab:red", lw=1.4, ms=4, zorder=3)
     axB.axvline(0.003, color="0.6", ls=":", lw=1.2)
     axB.annotate(
         "original solver (C ≈ 0.003):\ntiny step, full wake",
@@ -202,24 +277,48 @@ def main() -> None:
     axB.annotate(
         "ttm_fd_courant (C = 1):\nexact, ~1e-12",
         xy=(1.0, errs[-1]),
-        xytext=(0.06, errs[-1] * 30),
+        xytext=(0.58, errs[-1] * 300),
         fontsize=8,
         arrowprops=dict(arrowstyle="->", color="0.4"),
     )
     axB.text(
-        0.012,
+        0.05,
         1.6,
-        "dispersion saturates (sinc limit):\nshrinking the step does NOT help",
+        "small-C sinc limit:\nshrinking the step does NOT help",
         fontsize=8,
         color="0.35",
     )
+    axB.set_xlim(-0.02, 1.02)
     axB.set_xlabel("acoustic Courant number  C = v·dt/dz")
     axB.set_ylabel("normalized far-field RMS error vs d'Alembert")
-    axB.set_title("At fixed grid, only the magic step C = 1 removes the error")
+    axB.set_title("Stable side: dense sweep just below C = 1")
     axB.grid(alpha=0.3, which="both")
 
+    above_cs = np.array(ABOVE_CFL_COURANTS)
+    elapsed_ps = np.array([above_cfl[c]["elapsed_ps"] for c in above_cs])
+    diverged = np.array([above_cfl[c]["diverged"] for c in above_cs])
+    axC.plot(above_cs[diverged], elapsed_ps[diverged], "rx-", lw=1.2, label="reached 100× amplitude")
+    if np.any(~diverged):
+        axC.plot(
+            above_cs[~diverged],
+            elapsed_ps[~diverged],
+            "^",
+            mec="tab:blue",
+            mfc="none",
+            ms=7,
+            label="survived 1.8 ns (still formally unstable)",
+        )
+    axC.axhline(t_end * 1e12, color="0.6", ls=":", lw=1.0)
+    axC.axvline(1.0, color="0.3", ls="--", lw=1.0)
+    axC.set_xlim(0.995, max(ABOVE_CFL_COURANTS) + 0.015)
+    axC.set_xlabel("Courant number C above the CFL limit")
+    axC.set_ylabel("time to 100× amplitude (ps)")
+    axC.set_title("Above C = 1: numerical instability")
+    axC.grid(alpha=0.3)
+    axC.legend(fontsize=8)
+
     fig.suptitle(
-        "Cr/GaAs Fig. 3 preset (Δt = 1.8 ns): acoustic step size vs far-field accuracy",
+        "Cr/GaAs Fig. 3 preset (Δt = 1.8 ns): below, at, and above the acoustic CFL boundary",
         fontsize=12,
     )
     fig.tight_layout()

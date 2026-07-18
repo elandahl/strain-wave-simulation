@@ -138,21 +138,31 @@ a sweep of acoustic Courant numbers, comparing each to d'Alembert:
 
 ![acoustic step size vs far-field accuracy](images/courant_convergence.png)
 
-The result is not a gentle convergence — it is nearly all-or-nothing:
+The dense sweep shows all three Courant regimes:
 
-- For every `C < 1` the far field shows essentially the same dispersive wake
-  (normalized RMS error ≈ 1.16). Numerical dispersion of the pulse's sharp
-  (short-wavelength) content **saturates** at the `C → 0` "sinc limit"
-  `v_num/v ≈ sinc(k·dz/2)`, which is independent of `C`. So the original
-  solver's tiny step is not the problem, and *shrinking* the step does not
-  help.
-- At exactly `C = 1` the leapfrog dispersion relation is exact for all
+- **Small to moderate C (`0.003`–`0.5`):** the far-field error is saturated
+  near 1.16 and the curves show essentially the same dispersive wake.
+  Numerical dispersion of the pulse's sharp (short-wavelength) content tends
+  to the `C → 0` "sinc limit"
+  `v_num/v ≈ sinc(k·dz/2)`, which is independent of `C`. Thus shrinking the
+  original solver's already tiny step does not help.
+- **Just below C=1:** the wake finally contracts, but slowly: normalized RMS
+  error is 0.87 at `C=0.9`, 0.45 at `C=0.99`, and still 0.15 at `C=0.999`.
+  Near-one is better, but not exact for this sharp, long-propagated pulse.
+- **Exactly C=1:** the leapfrog dispersion relation is exact for all
   wavelengths on the grid, and the error collapses to ~1e-12 (roundoff /
   interpolation only).
+- **Above C=1:** the CFL condition is violated and the scheme is formally
+  unstable. In this 1.8 ns run, `C=1.00001` does not reach the plotted
+  100×-amplitude threshold within the finite run, but `C=1.0001` reaches it
+  after 605 ps, `C=1.01` after 68 ps, and `C=1.3` after only 16 ps.
 
 This is the concrete justification for the magic-step design: at a fixed grid
-you must either hit `C = 1` or refine `dz` drastically (cost ∝ dz⁻², since the
-thermal step scales as dz²). `ttm_fd_courant_cr_gaas` takes the former route.
+`C=1` is simultaneously the exact-dispersion point and the stability
+boundary. You must hit it from below (within floating-point construction) or
+refine `dz` drastically (cost ∝ dz⁻², since the thermal step scales as dz²).
+`ttm_fd_courant_cr_gaas` constructs `dt_acoustic = dz/v` algebraically and
+takes the former route.
 
 ## Validation matrix result (paper_fig3_gaas preset)
 
