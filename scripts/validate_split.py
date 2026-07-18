@@ -84,7 +84,16 @@ strain_file, reference_path = sys.argv[1], sys.argv[2]
 with np.load(strain_file) as data:
     displacement, strain = data["displacement"], data["strain"]
 profile = load_strain_profile(strain_file)
-xrd_result = run_xrd(profile, config=XrdConfig())
+# This script proves bit-for-bit equivalence to the frozen notebook package,
+# so pin both legacy XRD choices explicitly. The xrd-strain-simulation
+# production defaults intentionally use audited F0/Fh and physical APS blur.
+xrd_result = run_xrd(
+    profile,
+    config=XrdConfig(
+        crystal="gaas_004_10kev_legacy",
+        instrument="empirical",
+    ),
+)
 with open(reference_path) as f:
     ref = json.load(f)["package_summary"]
 checks = {
