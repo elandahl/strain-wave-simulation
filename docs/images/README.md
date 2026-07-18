@@ -10,6 +10,7 @@
 | `physics_acceptance_pulse_train.png` | Acoustic pulse train in the d'Alembert far field (80 nm Cr/GaAs) with analytic echo-spacing gridlines (`2·L_film·v_GaAs/v_Cr` ≈ 114 nm). Diagnostic for the physics acceptance suite. | `scripts/validate_physics.py` | Current (2026-07-18 run). See `../VALIDATION.md`. |
 | `fig2_forward.png` | Fig. 2 forward model panels (mirrored from xrd repo). | paper_fig2_si | Current. |
 | `fig2_published_vs_forward.png` | Published Fig. 2 vs forward rocking curve. | — | Current. |
+| `fig2_delay_average.png` | Fig. 2 rocking curve averaged over the 90 ps FWHM APS x-ray bunch (mirrored from xrd repo); depth fringes cancel, Brillouin sideband survives. | `xrd-strain-simulation/scripts/fig2_delay_average.py` | Current (2026-07-18 run). |
 
 Interpretation and analysis: `../ACOUSTIC_MODELS.md`. The companion
 rocking-curve matrix figure lives in
