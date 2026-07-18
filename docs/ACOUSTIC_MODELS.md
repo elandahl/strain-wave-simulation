@@ -83,6 +83,12 @@ d'Alembert strain on the paper's exact split z-axis (0–800 nm and
 
 ![d'Alembert strain on the paper split axis](images/fig3_strain_split_dalembert.png)
 
+Benchmark target — the published Fig. 3 (Jo et al., Sci. Rep. **12**, 16606
+(2022), CC BY 4.0). Note the "thermal diffusion" near field and the "impulsive
+pulse train" near 8.5 μm that the d'Alembert model recovers:
+
+![Published Sci. Rep. Fig. 3](images/published_fig3_scirep_2022.png)
+
 Key numbers from the 2026-07-18 run (`results/matrix/matrix_summary.json`):
 
 - near field (0–800 nm): identical by construction.
