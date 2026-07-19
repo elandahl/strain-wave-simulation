@@ -46,8 +46,32 @@ SI = SubstrateMaterial(
     k_bulk=148.0,
 )
 
+# Ge [001]: v_L = sqrt(C11/rho) with C11 ~= 128.5 GPa. Remaining values
+# are room-temperature bulk properties; see docs/MATERIALS_PROVENANCE.md.
+GE = SubstrateMaterial(
+    name="Ge",
+    v=4910.0,
+    rho=5323.0,
+    beta=5.9e-6,
+    cp=320.0,
+    k_bulk=60.2,
+)
+
+# InSb [001]: v_L = sqrt(C11/rho) with C11 ~= 66.6 GPa. InSb is much softer
+# and less thermally conductive than the other campaign substrates.
+INSB = SubstrateMaterial(
+    name="InSb",
+    v=3395.0,
+    rho=5775.0,
+    beta=5.37e-6,
+    cp=199.0,
+    k_bulk=18.0,
+)
+
 SUBSTRATES = {
     GAAS.name: GAAS,
+    GE.name: GE,
+    INSB.name: INSB,
     SI.name: SI,
 }
 

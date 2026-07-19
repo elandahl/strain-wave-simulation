@@ -120,5 +120,33 @@ class TtmDalembertCrSiModel(TtmDalembertCrSubstrateModel):
         return super().run(config, verbose=verbose)
 
 
+class TtmDalembertCrGeModel(TtmDalembertCrSubstrateModel):
+    """Convenience alias for Cr/Ge campaign runs."""
+
+    name = "ttm_dalembert_cr_ge"
+
+    def run(
+        self, config: SimulationConfig, verbose: bool = True
+    ) -> StrainSimulationResult:
+        if config.substrate != "Ge":
+            config = SimulationConfig(**{**config.__dict__, "substrate": "Ge"})
+        return super().run(config, verbose=verbose)
+
+
+class TtmDalembertCrInSbModel(TtmDalembertCrSubstrateModel):
+    """Convenience alias for Cr/InSb campaign runs."""
+
+    name = "ttm_dalembert_cr_insb"
+
+    def run(
+        self, config: SimulationConfig, verbose: bool = True
+    ) -> StrainSimulationResult:
+        if config.substrate != "InSb":
+            config = SimulationConfig(**{**config.__dict__, "substrate": "InSb"})
+        return super().run(config, verbose=verbose)
+
+
 register_model(TtmDalembertCrSubstrateModel())
 register_model(TtmDalembertCrSiModel())
+register_model(TtmDalembertCrGeModel())
+register_model(TtmDalembertCrInSbModel())

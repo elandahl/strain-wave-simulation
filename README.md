@@ -5,7 +5,9 @@ Compute displacement and strain profiles from laser-excited film/substrate syste
 ## Current models
 
 - **`ttm_dalembert_cr_gaas` (default)** — TTM near field + exact d'Alembert far-field propagation (dispersion-free; recovers the discrete pulse train of Sci. Rep. Fig. 3). Physically realistic choice for new work.
-- **`ttm_dalembert_cr_si`** / **`ttm_dalembert_cr_substrate`** — same method for Cr/Si (Fig. 2) or any substrate in `strain_wave.materials`.
+- **`ttm_dalembert_cr_si`**, **`ttm_dalembert_cr_ge`**,
+  **`ttm_dalembert_cr_insb`** / **`ttm_dalembert_cr_substrate`** — same
+  method for the four APS substrates registered in `strain_wave.materials`.
 - **`ttm_fd_courant_cr_gaas`** — Courant-matched FD far field (acceptance-tested vs d'Alembert).
 - **`ttm_cr_gaas`** — historical notebook leapfrog (dispersive; archival only).
 - **`ttm_fd_courant_cr_gaas`** — same TTM/near field, with a boundary-driven
@@ -31,6 +33,11 @@ python scripts/run.py --preset paper_fig3_gaas --no-show
 
 # Sci. Rep. Fig. 2 (Cr/Si, Δt = 0.34 ns)
 python scripts/run.py --preset paper_fig2_si --no-show
+
+# Ge/InSb material smoke runs (replace default sample parameters with the
+# actual Cr thickness/fluence/TBC before data analysis):
+python scripts/run.py --model ttm_dalembert_cr_ge --no-show
+python scripts/run.py --model ttm_dalembert_cr_insb --no-show
 
 # Historical notebook-faithful leapfrog solver:
 python scripts/run.py --preset paper_fig3_gaas --model ttm_cr_gaas --no-show
@@ -63,9 +70,14 @@ The `.npz` file includes `z`, `displacement`, `strain`, `substrate_strain`, `dz`
 |-------------|--------------|
 | Carrier generation / transport / recombination and deformation-potential stress | extend the field/source interface in `models/courant_fd.py`; register a new material model |
 | Phonon MFP strain models | `src/strain_wave/models/` + register with `register_model()` |
-| Si, Ge, InSb substrates | `src/strain_wave/materials/` + new model or generalized solver |
+| Additional substrates | `src/strain_wave/materials/`; generalized d'Alembert solver already dispatches by material |
 | Multilayers / variable thickness | extend `SimulationConfig` and add new model class |
 | Different films | new material modules + model implementation |
+
+Ge and InSb room-temperature bulk-property provenance, plus the distinction
+between intrinsic material properties and sample-specific fit parameters, is
+documented in
+[`docs/MATERIALS_PROVENANCE.md`](docs/MATERIALS_PROVENANCE.md).
 
 ## Paper reproduction and validation
 

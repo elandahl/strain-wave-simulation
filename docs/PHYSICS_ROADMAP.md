@@ -92,14 +92,14 @@ than simulated. Ranked by impact on the multi-substrate campaign:
 
 - Paper: Cr/GaAs *and* Cr/Si.
 - Campaign: also InSb and Ge.
-- Current code: Cr/GaAs parameters hardcoded in the TTM solver; XRD is
-  GaAs-only.
-- Needed:
-  - `strain_wave.materials/` entries (ρ, v, α, C, k defaults, optical constants
-    if ever semi-transparent)
-  - substrate-agnostic solver or thin wrappers per stack
-  - `xrd-strain-simulation` crystal calculators: Si (004), Ge (004), InSb (004)
-    (or relevant reflections) at the relevant X-ray energies
+- **Baseline complete:** `strain_wave.materials` now carries audited
+  room-temperature bulk defaults for all four substrates; the generalized
+  d'Alembert model has Cr/Si, Cr/Ge, and Cr/InSb aliases.
+- **XRD baseline complete:** externally checked GaAs, Si, Ge, and InSb (004),
+  10 keV production calculators.
+- Remaining campaign work: attach actual per-sample Cr thickness, absorbed
+  fluence, TBC/effective conductivity priors, and delay grids. These are not
+  intrinsic material properties and must not be hidden in the registry.
 
 ### Priority B — refinements the paper invokes, currently lumped into fits
 
@@ -181,9 +181,9 @@ the magic step.
 
 Aligned with curating APS + PLS data rather than with abstract completeness:
 
-1. **Materials + XRD coverage (A3)** — unlock Si, Ge, InSb forward models and
-   thickness sweeps so the curated sample matrix can be simulated at all.
-2. **Presets / bookkeeping for the two campaigns** — naming conventions for
+1. **Materials + XRD coverage (A3) — baseline done.** GaAs, Si, Ge, and InSb
+   fixed-scope (004), 10 keV support is in place and externally checked.
+2. **Presets / bookkeeping for the two campaigns — next.** Naming conventions for
    thickness × substrate × facility, fluence, delay grids; strain-profile
    metadata that records model id + fitted parameters for each fit.
 3. **Non-Fourier / two-channel heat (A1–A2)** — highest scientific return for
@@ -216,7 +216,8 @@ Useful to settle early in the data-curation phase:
    acoustic damping or late carrier physics become visible?
 3. Should reduced k_s continue as a fitted effective Fourier parameter in v1
    re-analysis, with non-Fourier models as a parallel v2 science track?
-4. Priority order among Si vs Ge vs InSb for the first non-GaAs XRD calculator?
+4. Which Cr/Ge and Cr/InSb samples have the best independent thickness, XRR,
+   fluence, and timing metadata for the first four-material fit?
 5. Are SEM grain sizes / XRR thicknesses available per sample for Mayadas–
    Shatzkes and thickness-series modeling?
 

@@ -1,8 +1,10 @@
 """Smoke tests."""
 
 import numpy as np
+import pytest
 
 from strain_wave import SimulationConfig, get_preset, run_simulation
+from strain_wave.materials import get_substrate
 
 
 def test_default_model_is_dalembert():
@@ -68,3 +70,31 @@ def test_paper_fig2_si_preset_and_short_run():
     result = run_simulation(short, verbose=False)
     assert result.substrate_material == "Si"
     assert result.model == "ttm_dalembert_cr_si"
+
+
+@pytest.mark.parametrize(
+    "substrate,model,expected_speed",
+    [
+        ("Ge", "ttm_dalembert_cr_ge", 4910.0),
+        ("InSb", "ttm_dalembert_cr_insb", 3395.0),
+    ],
+)
+def test_ge_insb_materials_and_short_runs(substrate, model, expected_speed):
+    material = get_substrate(substrate)
+    assert material.v == expected_speed
+    assert material.rho > 5000.0
+    assert material.cp > 0.0
+    assert material.k_bulk > 0.0
+
+    config = SimulationConfig(
+        model=model,
+        # Alias must enforce the intended substrate even when the caller
+        # leaves the SimulationConfig default ("GaAs").
+        t_max=1e-12,
+        L_film=80e-9,
+        L_sub=500e-9,
+        dz=2.67e-9,
+    )
+    result = run_simulation(config, verbose=False)
+    assert result.substrate_material == substrate
+    assert result.model == model
